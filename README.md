@@ -1,2 +1,2 @@
-# Programmeerimine2
-C# studies
+Nelson Arrak
+c# proge
