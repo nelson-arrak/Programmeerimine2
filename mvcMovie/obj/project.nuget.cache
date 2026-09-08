@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "pva38yHAt0k=",
+  "success": true,
+  "projectFilePath": "/home/n315/code/Programmeerimine2/mvcMovie/mvcMovie.csproj",
+  "expectedPackageFiles": [
+    "/home/n315/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.11/microsoft.aspnetcore.app.ref.10.0.11.nupkg.sha512"
+  ],
+  "logs": []
+}
