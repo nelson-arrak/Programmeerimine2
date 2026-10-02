@@ -5,15 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Data
 {
-    [Index(nameof(Id), IsUnique = true)]
     [Index(nameof(Email), IsUnique = true)]
     [Index(nameof(PhoneNumber), IsUnique = true)]
     public class Customer
     {
-        [Required]
         public int Id {get;set;}
-        
-        [Required]
         public List<Address> Addresses {get;set;}
         
         [Required]
@@ -30,8 +26,6 @@ namespace KooliProjekt.Application.Data
         [Required]
         [StringLength(20)]
         public string PhoneNumber {get;set;}
-
-        [Required]
         public List<Order> Orders {get;set;}
     }
 }

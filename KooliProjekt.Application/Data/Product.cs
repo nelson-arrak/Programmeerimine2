@@ -4,12 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Data
 {
-    [Index(nameof(Id), IsUnique = true)]
     [Index(nameof(Name), IsUnique = true)]
-    [Index(nameof(Description), IsUnique = true)]
     public class Product
     {
-        [Required]
         public int Id {get;set;}
         
         [Required]
@@ -17,13 +14,12 @@ namespace KooliProjekt.Application.Data
         public string Name {get;set;}
         
         [Required]
-        [StringLength(255)]
         public string Description {get;set;}
         
-        [Required]
+        [Range(typeof(decimal), "0.01", "999999999")]
         public decimal Price {get;set;}
         
-        [Required]
+        [Range(0, int.MaxValue)]
         public int StockQuantity {get;set;}
         
         [Required]

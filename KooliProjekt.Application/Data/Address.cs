@@ -5,10 +5,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace KooliProjekt.Application.Data
 {
-    [Index(nameof(Id), IsUnique = true)]
     public class Address
     {
-        [Required]
         public int Id {get;set;}
 
         [Required]
