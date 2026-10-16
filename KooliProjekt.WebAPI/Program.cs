@@ -41,6 +41,16 @@ namespace KooliProjekt.WebAPI
 
             var app = builder.Build();
 
+            // Apply database migrations and seed data.
+            using (var scope = app.Services.CreateScope())
+            {
+                var context = scope.ServiceProvider
+                    .GetRequiredService<ApplicationDbContext>();
+
+                context.Database.Migrate();
+                SeedData.Generate(context);
+            }
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -49,8 +59,6 @@ namespace KooliProjekt.WebAPI
             }
 
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();
