@@ -6,15 +6,18 @@ namespace KooliProjekt.Application.Data
 {
     public class OrderItem
     {
-        public int Id {get;set;}
-        
+        public int Id { get; set; }
+
         [Required]
-        public Product Product {get;set;}
-        
+        public Product Product { get; set; }
+
+        [Required]
+        public Order Order { get; set; } = null!;
+
         [Range(0, int.MaxValue)]
-        public int Quantity {get;set;}
+        public int Quantity { get; set; }
 
         [Range(typeof(decimal), "0.01", "999999999")]
-        public decimal Price {get;set;}
+        public decimal Price { get; set; }
     }
 }

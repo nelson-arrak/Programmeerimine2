@@ -5,13 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace KooliProjekt.Application.Data
 {
-    [Index(nameof(Order), IsUnique = true)]
+    [Index(nameof(OrderId), IsUnique = true)]
     public class Payment
     {
         public int Id {get;set;}
         
         [Required]
-        public Order Order {get;set;}
+        public int OrderId {get;set;}
+
+        [Required]
+        public Order Order {get;set;} = null!;
         
         [Range(typeof(decimal), "0.01", "999999999")]
         public decimal Amount {get;set;}
