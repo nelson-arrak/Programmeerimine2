@@ -1,13 +1,16 @@
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Dto;
+using KooliProjekt.Application.Infrastructure.Paging;
+using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Categories
 {
-    public class ListCategoriesQueryHandler : IRequestHandler<ListCategoriesQuery, IEnumerable<Category>>
+    public class ListCategoriesQueryHandler : IRequestHandler<ListCategoriesQuery, OperationResult<PagedResult<CategoryListItemDto>>>
     {
         private readonly ApplicationDbContext _dbContext;
 
@@ -16,9 +19,19 @@ namespace KooliProjekt.Application.Features.Categories
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Category>> Handle(ListCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<PagedResult<CategoryListItemDto>>> Handle(ListCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var result = await _dbContext.Category.ToListAsync(cancellationToken);
+            var result = new OperationResult<PagedResult<CategoryListItemDto>>();
+            result.Value = await _dbContext.Category
+                .AsNoTracking()
+                .OrderBy(category => category.Name)
+                .Select(category => new CategoryListItemDto
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                    ProductCount = _dbContext.Products.Count(product => product.Category.Id == category.Id)
+                })
+                .GetPagedAsync(request.Page, request.PageSize);
 
             return result;
         }

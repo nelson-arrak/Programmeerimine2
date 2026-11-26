@@ -1,13 +1,16 @@
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Dto;
+using KooliProjekt.Application.Infrastructure.Paging;
+using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Products
 {
-    public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, IEnumerable<Product>>
+    public class ListProductsQueryHandler : IRequestHandler<ListProductsQuery, OperationResult<PagedResult<ProductListItemDto>>>
     {
         private readonly ApplicationDbContext _dbContext;
 
@@ -16,9 +19,21 @@ namespace KooliProjekt.Application.Features.Products
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Product>> Handle(ListProductsQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<PagedResult<ProductListItemDto>>> Handle(ListProductsQuery request, CancellationToken cancellationToken)
         {
-            var result = await _dbContext.Products.ToListAsync(cancellationToken);
+            var result = new OperationResult<PagedResult<ProductListItemDto>>();
+            result.Value = await _dbContext.Products
+                .AsNoTracking()
+                .OrderBy(product => product.Name)
+                .Select(product => new ProductListItemDto
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Price = product.Price,
+                    InStock = product.StockQuantity > 0,
+                    CategoryName = product.Category.Name
+                })
+                .GetPagedAsync(request.Page, request.PageSize);
 
             return result;
         }
