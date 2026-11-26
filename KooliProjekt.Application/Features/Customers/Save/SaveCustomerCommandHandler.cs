@@ -4,10 +4,10 @@ using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Infrastructure.Results;
 using KooliProjekt.Application.Infrastructure.Security;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Customers
 {
+    // Andmete kontroll (kohustuslikud väljad, olemasolu, unikaalsus) on SaveCustomerCommandValidator klassis
     public class SaveCustomerCommandHandler : IRequestHandler<SaveCustomerCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,50 +19,30 @@ namespace KooliProjekt.Application.Features.Customers
 
         public async Task<OperationResult> Handle(SaveCustomerCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var emailTaken = await _dbContext.Customers
-                .AnyAsync(customer => customer.Email == request.Email && customer.Id != request.Id, cancellationToken);
-            if (emailTaken)
-            {
-                return result.AddPropertyError(nameof(request.Email), "Customer with this email already exists");
-            }
-
-            var phoneTaken = await _dbContext.Customers
-                .AnyAsync(customer => customer.PhoneNumber == request.PhoneNumber && customer.Id != request.Id, cancellationToken);
-            if (phoneTaken)
-            {
-                return result.AddPropertyError(nameof(request.PhoneNumber), "Customer with this phone number already exists");
-            }
-
-            var customer = new Customer();
+            var entity = new Customer();
 
             if (request.Id == 0)
             {
-                _dbContext.Customers.Add(customer);
+                _dbContext.Customers.Add(entity);
             }
             else
             {
-                customer = await _dbContext.Customers.FindAsync(new object[] { request.Id }, cancellationToken);
-                if (customer == null)
-                {
-                    return result.AddError("Cannot find customer with ID " + request.Id);
-                }
+                entity = await _dbContext.Customers.FindAsync(new object[] { request.Id }, cancellationToken);
             }
 
-            customer.Name = request.Name;
-            customer.Email = request.Email;
-            customer.PhoneNumber = request.PhoneNumber;
+            entity.Name = request.Name;
+            entity.Email = request.Email;
+            entity.PhoneNumber = request.PhoneNumber;
 
             // Parooli hoiame ainult räsina, muutmisel tühi parool tähendab "ära muuda"
             if (!string.IsNullOrEmpty(request.Password))
             {
-                customer.PasswordHash = PasswordHasher.Hash(request.Password);
+                entity.PasswordHash = PasswordHasher.Hash(request.Password);
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

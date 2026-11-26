@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Categories
 {
+    // Olemasolu ja sõltuvuste kontroll on DeleteCategoryCommandValidator klassis
     public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,26 +20,11 @@ namespace KooliProjekt.Application.Features.Categories
 
         public async Task<OperationResult> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var exists = await _dbContext.Category
-                .AnyAsync(entity => entity.Id == request.Id, cancellationToken);
-            if (!exists)
-            {
-                return result.AddError("Cannot find category with ID " + request.Id);
-            }
-
-            var hasProducts = await _dbContext.Products
-                .AnyAsync(product => product.Category.Id == request.Id, cancellationToken);
-            if (hasProducts)
-            {
-                return result.AddError("Cannot delete category because it has products");
-            }
             await _dbContext.Category
                 .Where(entity => entity.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

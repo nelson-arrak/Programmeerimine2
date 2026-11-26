@@ -1,5 +1,8 @@
+using System;
 using System.Linq;
 using FluentValidation;
+using KooliProjekt.Application.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Orders
 {
@@ -7,21 +10,30 @@ namespace KooliProjekt.Application.Features.Orders
     {
         public static readonly string[] AllowedStatuses = { "Pending", "Paid", "Shipped", "Completed", "Cancelled" };
 
-        public SaveOrderCommandValidator()
+        public SaveOrderCommandValidator(ApplicationDbContext dbContext)
         {
-            RuleFor(command => command.Id)
-                .GreaterThanOrEqualTo(0).WithMessage("Id cannot be negative");
+            // Id = 0 -> uus kirje, Id > 0 -> olemasoleva muutmine
+            RuleFor(x => x.Id)
+                .Cascade(CascadeMode.Stop)
+                .GreaterThanOrEqualTo(0).WithMessage("Id cannot be negative")
+                .MustAsync((id, ct) => dbContext.Orders.AnyAsync(e => e.Id == id, ct))
+                .When(x => x.Id > 0, ApplyConditionTo.CurrentValidator)
+                .WithMessage(x => "Cannot find order with ID " + x.Id);
 
-            RuleFor(command => command.CustomerId)
-                .GreaterThan(0).WithMessage("Customer is required");
+            RuleFor(x => x.CustomerId)
+                .Cascade(CascadeMode.Stop)
+                .GreaterThan(0).WithMessage("Customer is required")
+                .MustAsync((customerId, ct) => dbContext.Customers.AnyAsync(c => c.Id == customerId, ct))
+                .WithMessage(x => "Cannot find customer with ID " + x.CustomerId);
 
-            RuleFor(command => command.OrderDate)
-                .NotEmpty().WithMessage("Order date is required");
+            RuleFor(x => x.OrderDate)
+                .NotEmpty().WithMessage("Order date is required")
+                .LessThanOrEqualTo(x => DateTime.Now).WithMessage("Order date cannot be in the future");
 
-            RuleFor(command => command.Status)
+            RuleFor(x => x.Status)
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty().WithMessage("Status is required")
                 .Must(status => AllowedStatuses.Contains(status))
-                .When(command => !string.IsNullOrEmpty(command.Status))
                 .WithMessage("Status must be one of: " + string.Join(", ", AllowedStatuses));
         }
     }

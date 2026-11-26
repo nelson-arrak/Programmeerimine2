@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.OrderItems
 {
+    // Andmete kontroll (olemasolu, kogus, suletud tellimus jne) on SaveOrderItemCommandValidator klassis
     public class SaveOrderItemCommandHandler : IRequestHandler<SaveOrderItemCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -18,51 +19,35 @@ namespace KooliProjekt.Application.Features.OrderItems
 
         public async Task<OperationResult> Handle(SaveOrderItemCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var order = await _dbContext.Orders.FindAsync(new object[] { request.OrderId }, cancellationToken);
-            if (order == null)
-            {
-                return result.AddPropertyError(nameof(request.OrderId), "Cannot find order with ID " + request.OrderId);
-            }
-
-            var product = await _dbContext.Products.FindAsync(new object[] { request.ProductId }, cancellationToken);
-            if (product == null)
-            {
-                return result.AddPropertyError(nameof(request.ProductId), "Cannot find product with ID " + request.ProductId);
-            }
-
-            var item = new OrderItem();
+            var entity = new OrderItem();
 
             if (request.Id == 0)
             {
-                _dbContext.OrderItems.Add(item);
+                _dbContext.OrderItems.Add(entity);
             }
             else
             {
-                item = await _dbContext.OrderItems
-                    .Include(orderItem => orderItem.Product)
-                    .FirstOrDefaultAsync(orderItem => orderItem.Id == request.Id, cancellationToken);
-                if (item == null)
-                {
-                    return result.AddError("Cannot find order item with ID " + request.Id);
-                }
+                entity = await _dbContext.OrderItems
+                    .Include(item => item.Product)
+                    .FirstOrDefaultAsync(item => item.Id == request.Id, cancellationToken);
             }
+
+            var product = await _dbContext.Products.FindAsync(new object[] { request.ProductId }, cancellationToken);
 
             // Hind võetakse tootelt hetkel, kui toode reale lisatakse.
             // Hiljem toote hinna muutmine ei muuda juba tehtud tellimusi.
-            if (item.Product == null || item.Product.Id != product.Id)
+            if (entity.Product == null || entity.Product.Id != product.Id)
             {
-                item.Price = product.Price;
+                entity.Price = product.Price;
             }
 
-            item.Order = order;
-            item.Product = product;
-            item.Quantity = request.Quantity;
+            entity.Order = await _dbContext.Orders.FindAsync(new object[] { request.OrderId }, cancellationToken);
+            entity.Product = product;
+            entity.Quantity = request.Quantity;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Payments
 {
+    // Olemasolu ja sõltuvuste kontroll on DeletePaymentCommandValidator klassis
     public class DeletePaymentCommandHandler : IRequestHandler<DeletePaymentCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,20 +20,11 @@ namespace KooliProjekt.Application.Features.Payments
 
         public async Task<OperationResult> Handle(DeletePaymentCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var exists = await _dbContext.Payments
-                .AnyAsync(entity => entity.Id == request.Id, cancellationToken);
-            if (!exists)
-            {
-                return result.AddError("Cannot find payment with ID " + request.Id);
-            }
-
             await _dbContext.Payments
                 .Where(entity => entity.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

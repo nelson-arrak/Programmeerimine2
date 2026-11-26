@@ -17,11 +17,6 @@ namespace KooliProjekt.WebAPI.Controllers
         [HttpGet("get/{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            if (id <= 0)
-            {
-                return NotFound();
-            }
-
             var query = new GetAddressQuery { Id = id };
             var result = await _mediator.Send(query);
 

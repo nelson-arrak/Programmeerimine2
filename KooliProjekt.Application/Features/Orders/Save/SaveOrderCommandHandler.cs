@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Orders
 {
+    // Andmete kontroll (kohustuslikud väljad, olemasolu, unikaalsus) on SaveOrderCommandValidator klassis
     public class SaveOrderCommandHandler : IRequestHandler<SaveOrderCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -18,36 +18,24 @@ namespace KooliProjekt.Application.Features.Orders
 
         public async Task<OperationResult> Handle(SaveOrderCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var customer = await _dbContext.Customers.FindAsync(new object[] { request.CustomerId }, cancellationToken);
-            if (customer == null)
-            {
-                return result.AddPropertyError(nameof(request.CustomerId), "Cannot find customer with ID " + request.CustomerId);
-            }
-
-            var order = new Order();
+            var entity = new Order();
 
             if (request.Id == 0)
             {
-                _dbContext.Orders.Add(order);
+                _dbContext.Orders.Add(entity);
             }
             else
             {
-                order = await _dbContext.Orders.FindAsync(new object[] { request.Id }, cancellationToken);
-                if (order == null)
-                {
-                    return result.AddError("Cannot find order with ID " + request.Id);
-                }
+                entity = await _dbContext.Orders.FindAsync(new object[] { request.Id }, cancellationToken);
             }
 
-            order.Customer = customer;
-            order.OrderDate = request.OrderDate;
-            order.Status = request.Status;
+            entity.Customer = await _dbContext.Customers.FindAsync(new object[] { request.CustomerId }, cancellationToken);
+            entity.OrderDate = request.OrderDate;
+            entity.Status = request.Status;
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

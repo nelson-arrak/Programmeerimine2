@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Addresses
 {
+    // Olemasolu ja sõltuvuste kontroll on DeleteAddressCommandValidator klassis
     public class DeleteAddressCommandHandler : IRequestHandler<DeleteAddressCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,20 +20,11 @@ namespace KooliProjekt.Application.Features.Addresses
 
         public async Task<OperationResult> Handle(DeleteAddressCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var exists = await _dbContext.Addresses
-                .AnyAsync(entity => entity.Id == request.Id, cancellationToken);
-            if (!exists)
-            {
-                return result.AddError("Cannot find address with ID " + request.Id);
-            }
-
             await _dbContext.Addresses
                 .Where(entity => entity.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }

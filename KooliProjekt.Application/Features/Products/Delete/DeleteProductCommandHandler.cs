@@ -2,43 +2,35 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
+using KooliProjekt.Application.Infrastructure.Files;
 using KooliProjekt.Application.Infrastructure.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Products
 {
+    // Olemasolu ja sõltuvuste kontroll on DeleteProductCommandValidator klassis
     public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly IFileClient _fileClient;
 
-        public DeleteProductCommandHandler(ApplicationDbContext dbContext)
+        public DeleteProductCommandHandler(ApplicationDbContext dbContext, IFileClient fileClient)
         {
             _dbContext = dbContext;
+            _fileClient = fileClient;
         }
 
         public async Task<OperationResult> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var exists = await _dbContext.Products
-                .AnyAsync(entity => entity.Id == request.Id, cancellationToken);
-            if (!exists)
-            {
-                return result.AddError("Cannot find product with ID " + request.Id);
-            }
-
-            var isOrdered = await _dbContext.OrderItems
-                .AnyAsync(item => item.Product.Id == request.Id, cancellationToken);
-            if (isOrdered)
-            {
-                return result.AddError("Cannot delete product because it is used in orders");
-            }
             await _dbContext.Products
                 .Where(entity => entity.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            return result;
+            // Andmebaasis piltide kohta midagi pole, aga toote kaust tuleb samuti ära kustutada
+            await _fileClient.DeleteStore(FileStore.ProductPhotos(request.Id));
+
+            return new OperationResult();
         }
     }
 }

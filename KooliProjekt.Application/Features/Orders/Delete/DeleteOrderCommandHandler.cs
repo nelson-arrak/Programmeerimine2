@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KooliProjekt.Application.Features.Orders
 {
+    // Olemasolu ja sõltuvuste kontroll on DeleteOrderCommandValidator klassis
     public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, OperationResult>
     {
         private readonly ApplicationDbContext _dbContext;
@@ -19,15 +20,6 @@ namespace KooliProjekt.Application.Features.Orders
 
         public async Task<OperationResult> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
         {
-            var result = new OperationResult();
-
-            var exists = await _dbContext.Orders
-                .AnyAsync(entity => entity.Id == request.Id, cancellationToken);
-            if (!exists)
-            {
-                return result.AddError("Cannot find order with ID " + request.Id);
-            }
-
             await _dbContext.Payments
                 .Where(payment => payment.OrderId == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
@@ -39,7 +31,7 @@ namespace KooliProjekt.Application.Features.Orders
                 .Where(entity => entity.Id == request.Id)
                 .ExecuteDeleteAsync(cancellationToken);
 
-            return result;
+            return new OperationResult();
         }
     }
 }
