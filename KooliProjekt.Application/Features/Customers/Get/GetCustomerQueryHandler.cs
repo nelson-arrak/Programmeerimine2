@@ -30,6 +30,7 @@ namespace KooliProjekt.Application.Features.Customers
                     Name = customer.Name,
                     Email = customer.Email,
                     PhoneNumber = customer.PhoneNumber,
+                    IsAdmin = customer.IsAdmin,
                     Addresses = customer.Addresses.Select(address => new AddressDto
                     {
                         Id = address.Id,

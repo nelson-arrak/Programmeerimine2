@@ -9,6 +9,7 @@ namespace KooliProjekt.Application.Dto
         public string Name { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public bool IsAdmin { get; set; }
         public IList<AddressDto> Addresses { get; set; }
         public IList<CustomerOrderDto> Orders { get; set; }
 

@@ -31,6 +31,7 @@ namespace KooliProjekt.Application.Features.Customers
                     Name = customer.Name,
                     Email = customer.Email,
                     PhoneNumber = customer.PhoneNumber,
+                    IsAdmin = customer.IsAdmin,
                     OrderCount = customer.Orders.Count
                 })
                 .GetPagedAsync(request.Page, request.PageSize);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using KooliProjekt.Application.Authentication;
 
 namespace KooliProjekt.Application.Data
 {
@@ -8,8 +9,15 @@ namespace KooliProjekt.Application.Data
     {
         private const int RowCount = 35;
 
+        // Testkasutajad autentimise proovimiseks (Swagger / Postman)
+        public const string AdminEmail = "admin@example.com";
+        public const string AdminPassword = "Admin123!";
+        public const string UserEmail = "user@example.com";
+        public const string UserPassword = "User1234!";
+
         public static void Generate(ApplicationDbContext context)
         {
+            SeedTestUsers(context);
             SeedCustomers(context);
             SeedCategories(context);
             SeedAddresses(context);
@@ -19,9 +27,40 @@ namespace KooliProjekt.Application.Data
             SeedPayments(context);
         }
 
+        // Lisab admin ja tavakasutaja, kui neid veel andmebaasis pole (töötab ka olemasoleva andmebaasi puhul)
+        private static void SeedTestUsers(ApplicationDbContext context)
+        {
+            if (!context.Customers.Any(c => c.Email == AdminEmail))
+            {
+                context.Customers.Add(new Customer
+                {
+                    Name = "Admin",
+                    Email = AdminEmail,
+                    PasswordHash = PasswordHelper.Hash(AdminPassword),
+                    PhoneNumber = "55500001",
+                    IsAdmin = true
+                });
+            }
+
+            if (!context.Customers.Any(c => c.Email == UserEmail))
+            {
+                context.Customers.Add(new Customer
+                {
+                    Name = "User",
+                    Email = UserEmail,
+                    PasswordHash = PasswordHelper.Hash(UserPassword),
+                    PhoneNumber = "55500002",
+                    IsAdmin = false
+                });
+            }
+
+            context.SaveChanges();
+        }
+
         private static void SeedCustomers(ApplicationDbContext context)
         {
-            if (context.Customers.Any())
+            // Testkasutajad on juba lisatud, seega kontrollime ülejäänud kliente
+            if (context.Customers.Any(c => c.Email != AdminEmail && c.Email != UserEmail))
                 return;
 
             var customers = new List<Customer>();
@@ -31,7 +70,7 @@ namespace KooliProjekt.Application.Data
                 customers.Add(new Customer
                 {
                     Name = $"user{i}",
-                    PasswordHash = $"password{i}",
+                    PasswordHash = PasswordHelper.Hash($"password{i}"),
                     Email = $"customer{i}@example.com",
                     PhoneNumber = $"{i:00000000}"
                 });

@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Infrastructure.Results;
-using KooliProjekt.Application.Infrastructure.Security;
+using KooliProjekt.Application.Authentication;
 using MediatR;
 
 namespace KooliProjekt.Application.Features.Customers
@@ -33,11 +33,12 @@ namespace KooliProjekt.Application.Features.Customers
             entity.Name = request.Name;
             entity.Email = request.Email;
             entity.PhoneNumber = request.PhoneNumber;
+            entity.IsAdmin = request.IsAdmin;
 
             // Parooli hoiame ainult räsina, muutmisel tühi parool tähendab "ära muuda"
             if (!string.IsNullOrEmpty(request.Password))
             {
-                entity.PasswordHash = PasswordHasher.Hash(request.Password);
+                entity.PasswordHash = PasswordHelper.Hash(request.Password);
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);

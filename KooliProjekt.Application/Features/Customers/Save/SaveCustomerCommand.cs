@@ -11,6 +11,7 @@ namespace KooliProjekt.Application.Features.Customers
         public string Name { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        public bool IsAdmin { get; set; }
 
         // Uue kliendi puhul kohustuslik, muutmisel võib tühjaks jätta (siis parool ei muutu)
         public string Password { get; set; }

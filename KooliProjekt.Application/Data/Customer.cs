@@ -26,6 +26,9 @@ namespace KooliProjekt.Application.Data
         [Required]
         [StringLength(20)]
         public string PhoneNumber {get;set;}
+
+        public bool IsAdmin {get;set;}
+
         public List<Order> Orders {get;set;}
     }
 }
